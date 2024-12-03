@@ -19,3 +19,9 @@ LNA Gain and Mixer can be set in register with value 0-15 (04 bits) whereas VGA 
 RTL gain and Tuner gain ? RTL AGC is auto gain control for RTL2832U chip. Tunner AGC = gain on tuner chip. It is always better to have manual gain adjustment.
 
 https://www.rtl-sdr.com/new-updates-to-the-librtlsdr-rtl-sdr-driver-fork/
+
+0bxxxx	0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	Total
+RF	0	9	13	40	38	13	31	22	26	31	26	14	19	5	35	13	335
+Mixer	0	5	10	10	19	9	10	25	17	10	8	16	13	6	3	-8	153
+VGA	0	26	26	30	42	35	24	13	14	32	36	34	35	37	35	36	455
+![image](https://github.com/user-attachments/assets/e263456a-1dcf-48c4-84b4-8abb5c3b0590)
