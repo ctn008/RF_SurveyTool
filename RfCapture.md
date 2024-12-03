@@ -22,3 +22,5 @@ https://www.rtl-sdr.com/new-updates-to-the-librtlsdr-rtl-sdr-driver-fork/
 
 ![image](https://github.com/user-attachments/assets/e263456a-1dcf-48c4-84b4-8abb5c3b0590)
 Per http://superkuh.com/rtlsdr.html, LNA gain is 33dB total, and Mixer gain 15dB, whereas, VGA gain is 3.5dB step, with -12 to 40.5dB. The table above is actual measurement at 900MHz, and -60dBm input signal. Similar measurement can be performed at 400MHz for better alignment. 
+
+### Using librtlsdr fork and pyrtlsdr library to test this fork librtlsdr.
