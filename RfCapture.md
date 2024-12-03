@@ -14,5 +14,8 @@ It seems that VGA gain increases the whole spectrum (and background noise level)
 ![image](https://github.com/user-attachments/assets/76a4ac53-7b3f-4688-bf34-7334230a7b23)
 Tuner gain has 03 stages:
 LNA gain, Mixer gain and VGA gain. whereas AGC mode is not recommended for narrowband signals.
+LNA Gain and Mixer can be set in register with value 0-15 (04 bits) whereas VGA gain is from -12dB to 40.5dB with 3.5dB step.
 
 RTL gain and Tuner gain ? RTL AGC is auto gain control for RTL2832U chip. Tunner AGC = gain on tuner chip. It is always better to have manual gain adjustment.
+
+https://www.rtl-sdr.com/new-updates-to-the-librtlsdr-rtl-sdr-driver-fork/
