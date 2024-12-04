@@ -53,7 +53,7 @@ ylabel('Relative power (dB), Gain: auto')
 show()
 
 As seen on graphs below, auto gain has similar to 49.6 gain (max lna and mixer gain values).
-![image](https://github.com/user-attachments/assets/a7b54190-f12b-4b89-a10a-985788e4b28b)
+![image](https://github.com/user-attachments/assets/da5d6247-9c3f-4feb-803a-647403424918)
 
 ![image](https://github.com/user-attachments/assets/7d97b085-a27d-4b57-ae62-78b4bced48f7)
 
@@ -64,3 +64,5 @@ As seen on graphs below, auto gain has similar to 49.6 gain (max lna and mixer g
 There are 02 newer branchs of librtlsdr with advanced features, which are:  
 - old_dab: perform more calculation of gains at different frequencies, and provide absolute gain, signal strength  
 - Hayati: provide extension mode for setting separate lna, mixer & vga gains for R820T tunner (not sure applicable for R828D & V4 ?)
+
+**CONCLUSION ON GAIN SETTINGS**: RtlSdr can be setted for manual gain with different gain values and this works. There are issues with large signals (or strong interferences) that causes  overloading, as well as the sensitivity / selectivity of RtlSdr devices, that impact the performance, as well as different librtlsdr forks which provide better accurracies. Let 's leave this work for next phase improvements.  
