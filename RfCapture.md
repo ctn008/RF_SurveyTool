@@ -29,3 +29,4 @@ Rtl-Sdr tuner gain is established based on the above measurements, in such a way
 
 
 ### Using librtlsdr fork and pyrtlsdr library to test this fork librtlsdr.
+Tested the forked librtlsdr library ok on NeSdr device. But with blog v4, somehow setting manual gain doesn't function as expected, keep 0.0 unchanged ???
