@@ -28,5 +28,40 @@ Rtl-Sdr tuner gain is established based on the above measurements, in such a way
 ![image](https://github.com/user-attachments/assets/278d60d0-4072-46e4-b4cc-66b38b9d0844)
 
 
-### Using librtlsdr fork and pyrtlsdr library to test this fork librtlsdr.
+** Using librtlsdr fork and pyrtlsdr library to test this fork librtlsdr **
 Tested the forked librtlsdr library ok on NeSdr device. But with blog v4, somehow setting manual gain doesn't function as expected, keep 0.0 unchanged ???
+
+Testing on RtlSdr wrapper with setting sdr.gain to 'auto' and different gains shows that the gain values did impact the signal outputs. Therefore, it is confirmed that the different gain settings work as expected. There is something incorrect with the gain setting code...
+*
+from pylab import *
+from rtlsdr import *
+
+sdr = RtlSdr()
+sdr.sample_rate = 2.048e6
+sdr.center_freq = 98e6
+
+sdr.gain = 'auto' #28.0
+num_samples = 256 * 4096 # read for 0.12 seconds 
+readsamples = sdr.read_samples(num_samples)
+
+sdr.close()
+
+# use matplotlib to estimate and plot the PSD
+psd(readsamples, NFFT=4096, Fs=sdr.sample_rate/1e6, Fc=sdr.center_freq/1e6)
+xlabel('Frequency (MHz)')
+ylabel('Relative power (dB), Gain: auto')
+
+show()
+*
+As seen on graphs below, auto gain has similar to 49.6 gain (max lna and mixer gain values).
+![image](https://github.com/user-attachments/assets/a7b54190-f12b-4b89-a10a-985788e4b28b)
+
+![image](https://github.com/user-attachments/assets/7d97b085-a27d-4b57-ae62-78b4bced48f7)
+
+![image](https://github.com/user-attachments/assets/bd4f90a8-6273-4459-896a-b8d6ead50dcb)
+
+![image](https://github.com/user-attachments/assets/732f8d99-24bf-4071-898b-507ab3472c1b)
+
+There are 02 newer branchs of librtlsdr with advanced features, which are:  
+- old_dab: perform more calculation of gains at different frequencies, and provide absolute gain, signal strength  
+- Hayati: provide extension mode for setting separate lna, mixer & vga gains for R820T tunner (not sure applicable for R828D & V4 ?)
