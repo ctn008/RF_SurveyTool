@@ -61,6 +61,12 @@ As seen on graphs below, auto gain has similar to 49.6 gain (max lna and mixer g
 
 ![image](https://github.com/user-attachments/assets/732f8d99-24bf-4071-898b-507ab3472c1b)
 
+When changing the gains, the signal samples value (0-255) distribution also changes, as showed in the 2 graphs below:   
+![image](https://github.com/user-attachments/assets/6ff78419-5270-4ad4-8941-782c02507509)
+
+![image](https://github.com/user-attachments/assets/28e28818-0e70-4943-80eb-e534b591aaac)
+
+
 There are 02 newer branchs of librtlsdr with advanced features, which are:  
 - old_dab: perform more calculation of gains at different frequencies, and provide absolute gain, signal strength  
 - Hayati: provide extension mode for setting separate lna, mixer & vga gains for R820T tunner (not sure applicable for R828D & V4 ?)
