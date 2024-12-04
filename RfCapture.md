@@ -33,7 +33,7 @@ Tested the forked librtlsdr library ok on NeSdr device. But with blog v4, someho
 
 Testing on RtlSdr wrapper with setting sdr.gain to 'auto' and different gains shows that the gain values did impact the signal outputs. Therefore, it is confirmed that the different gain settings work as expected. There is something incorrect with the gain setting code...
 
-*from pylab import *
+from pylab import *
 from rtlsdr import *
 
 sdr = RtlSdr()
@@ -46,12 +46,11 @@ readsamples = sdr.read_samples(num_samples)
 
 sdr.close()
 
-# use matplotlib to estimate and plot the PSD
 psd(readsamples, NFFT=4096, Fs=sdr.sample_rate/1e6, Fc=sdr.center_freq/1e6)
 xlabel('Frequency (MHz)')
 ylabel('Relative power (dB), Gain: auto')
 
-show()*  
+show()
 
 As seen on graphs below, auto gain has similar to 49.6 gain (max lna and mixer gain values).
 ![image](https://github.com/user-attachments/assets/a7b54190-f12b-4b89-a10a-985788e4b28b)
