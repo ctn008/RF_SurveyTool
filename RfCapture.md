@@ -28,12 +28,12 @@ Rtl-Sdr tuner gain is established based on the above measurements, in such a way
 ![image](https://github.com/user-attachments/assets/278d60d0-4072-46e4-b4cc-66b38b9d0844)
 
 
-** Using librtlsdr fork and pyrtlsdr library to test this fork librtlsdr **
+**Using librtlsdr fork and pyrtlsdr library to test this fork librtlsdr**  
 Tested the forked librtlsdr library ok on NeSdr device. But with blog v4, somehow setting manual gain doesn't function as expected, keep 0.0 unchanged ???
 
 Testing on RtlSdr wrapper with setting sdr.gain to 'auto' and different gains shows that the gain values did impact the signal outputs. Therefore, it is confirmed that the different gain settings work as expected. There is something incorrect with the gain setting code...
-*
-from pylab import *
+
+*from pylab import *
 from rtlsdr import *
 
 sdr = RtlSdr()
@@ -51,8 +51,8 @@ psd(readsamples, NFFT=4096, Fs=sdr.sample_rate/1e6, Fc=sdr.center_freq/1e6)
 xlabel('Frequency (MHz)')
 ylabel('Relative power (dB), Gain: auto')
 
-show()
-*
+show()*  
+
 As seen on graphs below, auto gain has similar to 49.6 gain (max lna and mixer gain values).
 ![image](https://github.com/user-attachments/assets/a7b54190-f12b-4b89-a10a-985788e4b28b)
 
