@@ -1,4 +1,4 @@
-# Reading data from GPS device  TW5262
+gnss_lib_py# Reading data from GPS device  TW5262
 
 ## 1. Physical Interface & Connectivity  
 TW5262 uses uBlox M8 with UDR Untethered Dead Rekoning technology.
@@ -22,3 +22,8 @@ Calibrate rtlsdr device usign Kalibrate software - tried unsuccessfully.
 
 ## 2. Reading serial port    
 Need to understand how often the data is updated, and data contents.
+It seems that tw5262 update rate (default) is 1s. The data would be multiple line.
+One issue being observed is that the read data being corrupted. i.e. by theory, every NMEA message should start with $, but some readings don't have this $ (using python serial read)
+
+# GNSS Libraries for reference  
+gnss_lib_py developped by Stanford seems to be a good library.  
