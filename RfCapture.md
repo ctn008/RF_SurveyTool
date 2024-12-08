@@ -88,3 +88,23 @@ Q4. For serial port using USB-Serial converter, whether it operates same as norm
 USB port should be handled in a similar way as serial port, but the buffer size is much larger, 16MByte for all USB devices. It means if we have more devices then the buffer is less?
 
 For 2.5Msps rtlsdr, at 2 bytes per sample, this buffer is sufficient for 3s of data samples.
+
+## 3. Data Collection Requirements and Software Design  
+
+**Objective**: to capture continuous RF data for future analaysis.
+To enable this objective, needs to address 2 technical issues:  
+- Continuous receiving rf samples while changing rtlsdr rf gain. Also, to cover 5MHz bandwidth would require 02 rtlsdr to run simultaneously.
+- CPU can handle the data load, not overrun. This need to be tested.
+
+**Design**:  
+Utilize Python Multiprocessing to enable paralell run
+- Main process: a) retrieve GNSS data, b) evaluate data to adjust RF gain, and c) store to data to file. still keep separate data files (to be associated with different gps location), but the rf data is continuously.
+- process capture1: capture byte data stream from rtlsdr 1
+- process capture2: capture byte data stream from rtlsdr 2
+
+Let 's fix this design, and stay with 01 rtlsdr device if cpu is overloaded. This can be improved by conver to c++ code. But in fact, it is seen that reading data from usb port doesn't take up much cpu resources. Let test for a quick answer.
+
+Perhaps the most consuming cpu power is the evaluation of rf samples to adjust rf gains. What actually needs to be done ?
+- Take the samples, probably at least 1 Tetra frame (round up 40960 samples (=1.12 frame) @ 2.56msps)
+- calculate largest and smallest values. Need to average a few values in a range ? bytes (0-255 range) * 2 - 255 = (-255/+255) range.
+- Take into account any impact of DC offset ?
