@@ -72,3 +72,19 @@ There are 02 newer branchs of librtlsdr with advanced features, which are:
 - Hayati: provide extension mode for setting separate lna, mixer & vga gains for R820T tunner (not sure applicable for R828D & V4 ?)
 
 **CONCLUSION ON GAIN SETTINGS**: RtlSdr can be setted for manual gain with different gain values and this works. There are issues with large signals (or strong interferences) that causes  overloading, as well as the sensitivity / selectivity of RtlSdr devices, that impact the performance, as well as different librtlsdr forks which provide better accurracies. Let 's leave this work for next phase improvements.  
+
+## 2. Understanding Serial Port & USB Port operations  
+### 2.1 Serial Port  
+Serial port provide rs232 async data transfer for GNSS nmea 183 protocol data (and others). Question is how the data is being stored and received / transmitted. Serial port has its hardware buffer (1 byte to 16 bytes) and use interrupt to communicate with CPU. When serial port receive some data, let say 14 bytes in its buffer, it will raise an interrupt to the CPU to retrieve the data from its hardware buffer. The remaining 2 bytes (of 16 bytes) are reserved timining for additional bytes to arrive (to avoid buffer overloading). The OS serial driver shall be called to retrieve the data and clear hardware buffer. The data now is pushed into a serial port software buffer of much larger size (usually 4096 bytes). When a program read data from serial port, it actually takes data from this buffer.
+
+![image](https://github.com/user-attachments/assets/5a24461f-a30e-488a-b209-3eacd5d56973)
+
+Q1. How to test/figure out the size of serial port buffer ? What happen when the buffer is overloaded ? whether the old data will be pushed out?
+I2. We can try to set some delay and read all data from the com port, then check the size of data received? 
+I3. To make sure the received data is most current, when start retrieving data from serial port, we need to clear / reset the buffer ?
+Q4. For serial port using USB-Serial converter, whether it operates same as normal serial port ?
+
+### 2.2 USB Port  
+USB port should be handled in a similar way as serial port, but the buffer size is much larger, 16MByte for all USB devices. It means if we have more devices then the buffer is less?
+
+For 2.5Msps rtlsdr, at 2 bytes per sample, this buffer is sufficient for 3s of data samples.
