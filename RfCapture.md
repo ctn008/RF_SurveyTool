@@ -104,7 +104,9 @@ Utilize Python Multiprocessing to enable paralell run
 
 Let 's fix this design, and stay with 01 rtlsdr device if cpu is overloaded. This can be improved by conver to c++ code. But in fact, it is seen that reading data from usb port doesn't take up much cpu resources. Let test for a quick answer.
 
+***confirm***: running 2 rtlsdr (config as rtl=0, rtl=1) has minimal impact on cpu utilisation. Performing various fft calculations for both rtlsdr (in multi Dongle 44) then cpu usage 70%.
+
 Perhaps the most consuming cpu power is the evaluation of rf samples to adjust rf gains. What actually needs to be done ?
-- Take the samples, probably at least 1 Tetra frame (round up 15360 samples (=1.06 frame) @ 2.56msps)
+- Take the samples, probably at least 1 Tetra frame (round up 153600 samples (=1.06 frame) @ 2.56msps)
 - calculate largest and smallest values. Need to average a few values in a range ? bytes (0-255 range) * 2 - 255 = (-255/+255) range.
 - Take into account any impact of DC offset ?
