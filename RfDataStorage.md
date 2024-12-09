@@ -10,6 +10,11 @@ Also there may be a limitation on number of files can be store in a single folde
 So it is still practical to store seperate sample per file.
 - Best filesize for compression?
 Check on zlib documentaion: in practice, typically the size of the sliding window can be from several KB to MB, such as 4 KB, 32 KB, 1 MB, or 4 MB.
-So if the sample filesize is 150000 samples, then sliding windows 4kb may be practical? Let try to evaluate actual performance with difference window size.  
+So if the sample filesize is 150000 samples, then sliding windows 4kb may be practical? Let try to evaluate actual performance with difference window size.
+***results***: it turns out that the data can be compressed to reduce only about 20% size. So it may not be worth to perform such process.
+
+So how much diskspce is required, let 's say we have 2 rtrlsdr in paralell?
+5Mb per second per rtlsdr ==> 2 rtlsdr = 10Mbytes. 60 * 60 = 36,000 Mbytes per hour, or 36GB
+Therefore, it would require 512GB harddisk at least.
 - How to attach metadata to datastream?
 
