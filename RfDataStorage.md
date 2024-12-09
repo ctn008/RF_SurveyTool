@@ -15,6 +15,12 @@ So if the sample filesize is 150000 samples, then sliding windows 4kb may be pra
 
 So how much diskspce is required, let 's say we have 2 rtrlsdr in paralell?
 5Mb per second per rtlsdr ==> 2 rtlsdr = 10Mbytes. 60 * 60 = 36,000 Mbytes per hour, or 36GB
-Therefore, it would require 512GB harddisk at least.
+Therefore, it would require 512GB harddisk at least for RfSurvey module.
+
+Another issue is how to store RfSurvey data after processing? There are several options:
++ extract Tetra channel datas (of interest) to save at 36kbps.
+  How much saving? 36000 * 8bytes per sample = 288,000 (comparing to 2.56Msps)
++ Calculate dBm and store these values for all channels
+  
 - How to attach metadata to datastream?
 
