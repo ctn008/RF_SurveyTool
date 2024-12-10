@@ -110,3 +110,14 @@ Perhaps the most consuming cpu power is the evaluation of rf samples to adjust r
 - Take the samples, probably at least 1 Tetra frame (round up 153600 samples (=1.06 frame) @ 2.56msps)
 - calculate largest and smallest values. Need to average a few values in a range ? bytes (0-255 range) * 2 - 255 = (-255/+255) range.
 - Take into account any impact of DC offset ?
+
+## 4. Python multiprocessing with np.array data sharing  
+Design program to capture the data in rtlsdr async mode for better performance.
+- Main process: 
+- Process 0 read_bytes_async from sdr0
+- Process 1 read_bytes_async from sdr1
+- Process 2 update_gnss from tw5262 gnss module
+
+Need to share data betwrrn proc0, proc1 with main process: including:
++ data samples
++ rf gain
