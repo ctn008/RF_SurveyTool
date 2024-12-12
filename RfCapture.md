@@ -121,3 +121,17 @@ Design program to capture the data in rtlsdr async mode for better performance.
 Need to share data betwrrn proc0, proc1 with main process: including:
 + data samples
 + rf gain
+
+## 5. C multithread code by modifying rtl_sdr.c  
+RfCapture is mainly for data collection, and there is not much user interface, as well as speed is important. After reviewing rtl_sdr.c code, decide to write in C for the above purpose as well as for learning as well.
+
+### 5.1 Coding multithread design  
+Program consists of 04 threads: main thread, sdr0, sdr1 and gnss
+- main thread shall handle:
+- sdr0, sdr1:
+- gnss:
+
+
+### 5.2 Algorithm to calculate the signal magnitude    
+dd
+### 5.3 Determine the suitable BYTES_READ_SIZE  
