@@ -21,7 +21,7 @@ import os
 import sys 
 import datetime;
 
-cur_directory = os.getcwd() + '/samples/'
+cur_directory = '/home/ctn008/RfSurveySamples'+ '/samples/'
 rf_file = 'f397.5mhz_g0.0_s1638400_t1733118420.78.uint8'
 #rf_file = 'f397.5mhz_g49.6_s1638400_t1733118425.26.uint8'
 #rf_file = 'f397.5mhz_g19.7_s1638400_t1733118422.23.uint8'
@@ -32,16 +32,17 @@ import numpy as np
 iq_bytes = np.fromfile(cur_directory+rf_file, dtype='uint8')
 iq_samples = np.array([0]*(len(iq_bytes)//2), dtype='complex64')
 
-i_profile = np.array([0]*256, dtype = 'int16')
-q_profile = np.array([0]*256, dtype = 'int16')
+i_profile = np.array([0]*256, dtype = 'int32')
+q_profile = np.array([0]*256, dtype = 'int32')
 for i in range(len(iq_bytes)//2):
     i_profile[ iq_bytes[i*2] ]    += 1
     q_profile[ iq_bytes[i*2 +1] ] += 1
 
 import matplotlib.pyplot as plt
 
-plt.figure("Sample values distribution")
+plt.figure("Sample values distribution - I signal")
 plt.plot(i_profile)
+plt.figure("Sample values distribution - Q signal")
 plt.plot(q_profile)
 plt.show()
 
