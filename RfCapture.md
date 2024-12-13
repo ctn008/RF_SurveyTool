@@ -147,7 +147,13 @@ Let take a samples block of 16*16384 bytes:
 ***HOW TO COLLECT SAMPLES FOR ANALYSIS ?***
   + FM band 98MHz. The signal nature of Tetra digital and FM analogue may be different.
   + Simulate Tetra signal channels using Pluto transmitter.
-    
+  
+  Read samples at different gains, saves to files --> use python code to call rtl_sdr program.
+  Python code to read the data samples and compute, display the signal magnitudes.
+
+  Possible algorithms:
+  - sum of all samples value to check if increase or decrease? Level of deviation?
+  - Check min / max value to determine the trend increase or decrease
 ### 5.3 Determine the suitable BYTES_READ_SIZE  
 Assumption: downlink RF signals don't change abruptly ?  Not like DMO signal, where it change over burst duration ~ 56ms.
 From analysis in 5.2, it is likely we will take read size of 4096 bytes. Need to test how the system behave.
