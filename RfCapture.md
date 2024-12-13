@@ -131,7 +131,17 @@ Program consists of 04 threads: main thread, sdr0, sdr1 and gnss
 - sdr0, sdr1:
 - gnss:
 
+Code structure was implemented successfully in Linux. However, there is an issue on gnss reading in Linux, whereas the data (gps message) is currupted (don't know the rootcause yet). Tested in windows, the data is received in full, not corrupted. Suspecting the serial data in Linux buffer was missing ? Some issue with 7 bit/ 8 bit and baud rate?
 
-### 5.2 Algorithm to calculate the signal magnitude    
-dd
+Issue on rtl_sdr.c compiling in windows, haven't tried yet, not sure if the code run as expected. It seems the windows build is different, not straight forward like in Linux.
+
+### 5.2 Algorithm to calculate the signal magnitude and adjust gains    
+How to compare 2 signal blocks and tell whether the signal level increases or decreases? What is the rate of change?
+How to check whether signal clipping is encountered ? 
+
 ### 5.3 Determine the suitable BYTES_READ_SIZE  
+Assumption: downlink RF signals don't change abruptly ?  Not like DMO signal, where it change over burst duration ~ 56ms.
+
+### 5.4 Calculate location coordinates from the received GPS data
+
+
