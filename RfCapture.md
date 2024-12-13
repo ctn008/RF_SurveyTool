@@ -138,10 +138,20 @@ Issue on rtl_sdr.c compiling in windows, haven't tried yet, not sure if the code
 ### 5.2 Algorithm to calculate the signal magnitude and adjust gains    
 How to compare 2 signal blocks and tell whether the signal level increases or decreases? What is the rate of change?
 How to check whether signal clipping is encountered ? 
-
+Let take a samples block of 16*16384 bytes:
+- 16*16384 bytes = ~50ms = ~1 frame -> 1 TS = 4 * 16384 --> 1/16 TS = 4096 bytes.
+- time duration of 4096 bytes = 2048 samples = 2048/2560000 = 0.8 milisecond
+- So if we decide to take a sample block of 4096, then we will have 2048 I-samples + 2048 Q-samples. Question is whether we can combine both I&Q samples together in evaluating signal amplitude? Or separately evaluate I & Q, or need to compute signal magnitude for evaluation ? Let go for the worst case of calculating signal power. dBm gain is measure of power? 3dB increase double the power, but signal magnitude only increases 1.4 times.
+- But we care only about clipping, i.e if the signal is in danger range or not ? So why do we need to compute power ?
+- In any case, need to have sample data for analysis. So will collect data at FM 98MHz band.
+***HOW TO COLLECT SAMPLES FOR ANALYSIS ?***
+  + FM band 98MHz. The signal nature of Tetra digital and FM analogue may be different.
+  + Simulate Tetra signal channels using Pluto transmitter.
+    
 ### 5.3 Determine the suitable BYTES_READ_SIZE  
 Assumption: downlink RF signals don't change abruptly ?  Not like DMO signal, where it change over burst duration ~ 56ms.
+From analysis in 5.2, it is likely we will take read size of 4096 bytes. Need to test how the system behave.
 
 ### 5.4 Calculate location coordinates from the received GPS data
-
+For every second, receive different GPS data from 03 networks. So how to calculate to get the most accurate location coordinates? How about in case of GPS loss? What kind of gyro data shall be at output ? 
 
