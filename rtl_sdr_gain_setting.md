@@ -9,5 +9,6 @@ Need to understand the delay of gain setting (ie. how long after the gain settin
 
 ![image](https://github.com/user-attachments/assets/c68b2abb-7043-45e2-a367-87d46a2e8094)
 This plot shows the manual gain setting changes for block 16384 bytes each (gain = 0 vs 490).
-![image](https://github.com/user-attachments/assets/3ade80b4-dfc6-4845-9171-777379494d8d)
+![image](https://github.com/user-attachments/assets/80b03f3b-3ea4-422e-b38b-105a0501c453)
+
 This plot shows gain setting changes for block 4096 bytes each.
