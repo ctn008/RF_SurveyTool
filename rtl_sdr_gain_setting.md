@@ -12,3 +12,9 @@ This plot shows the manual gain setting changes for block 16384 bytes each (gain
 ![image](https://github.com/user-attachments/assets/80b03f3b-3ea4-422e-b38b-105a0501c453)
 
 This plot shows gain setting changes for block 4096 bytes each.
+
+## Summary  
+Gain stages in rtlsdr:
+- rtlsdr gain ? auto gain and manual gain ?
+- tuner gain: depends on type of tuners, consists of lna gain, mixer gain, vga gain, each use 04 bit register (16 value settings). old_dab changes librtlsdr driver to allow modifying vga gain (in manual mode) as well, that increase the input range futher. By controlling the gain manually, and setting suitable gains for different input signal levels, the measured signal can have a higher dynamic range than 8 bits. This adaptive gain control can avoid signal clipping for large signals (to still accurately monitor large signals), but of course in such situation, the small signal is limited by 8 bit adc resolution.
+- 
