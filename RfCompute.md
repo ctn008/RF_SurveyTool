@@ -1,6 +1,9 @@
 # RfCompute module
-
-Functions:
+## 1. Purpose
+- output data ready to display on google map: location, signal level in dBm
+- save Tetra signal of interest into file, discard the burky raw data files.
+  
+## 2. Functions:
 1- read all files in samples folder: samples file has fixed length, but gnss meta data may have variable length.
 2- Compute RF power of signal in each given block in saved sample files.
 3- Retrieve gnss coordinates and timing info from gnss messages.
