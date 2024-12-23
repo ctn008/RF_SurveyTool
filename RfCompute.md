@@ -29,3 +29,5 @@ From data point of view:
 Save time signal or fft power level if cpu processing power is capable of? Save time signal allows checking of received signal whether correct (continuously) or not, by decoding a tetra channel and try to decode - check for frame sequence...  
 
 This process involves signal processing technique such as frequency translating, filtering, decimation... Need to 
+
+### 2.3 KML file for coverage map display  
