@@ -25,5 +25,7 @@ Need to understand how often the data is updated, and data contents.
 It seems that tw5262 update rate (default) is 1s. The data would be multiple line.
 One issue being observed is that the read data being corrupted. i.e. by theory, every NMEA message should start with $, but some readings don't have this $ (using python serial read)
 
+**NOTE**: reading gps data from usb-serial port in Windows yields good data. But in linux, the data was lost / corrupted. Probably due to linux driver issues - not yet able to investigate.  
+
 # GNSS Libraries for reference  
 gnss_lib_py developped by Stanford seems to be a good library.  
