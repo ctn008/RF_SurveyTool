@@ -29,3 +29,13 @@ One issue being observed is that the read data being corrupted. i.e. by theory, 
 
 # GNSS Libraries for reference  
 gnss_lib_py developped by Stanford seems to be a good library.  
+
+GGA 	Time, position, and fix related data
+$GNGGA,080913.00,3725.77992,N,12208.00141,W,2,12,0.54,27.3,M,-30.0,M,,0000*46
+
+GLL 	Position data: position fix, time of position fix, and status
+$GNGLL,3725.77992,N,12208.00135,W,080912.00,A,D*6D
+
+RMC 	Position, Velocity, and Time
+$GNRMC,080913.00,A,3725.77992,N,12208.00141,W,0.011,,131224,12.59,E,D,V*6F
+      This message includes time and date info.
