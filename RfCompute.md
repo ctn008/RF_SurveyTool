@@ -31,3 +31,10 @@ Save time signal or fft power level if cpu processing power is capable of? Save 
 This process involves signal processing technique such as frequency translating, filtering, decimation... Need to 
 
 ### 2.3 KML file for coverage map display  
+Available OSS to convert NMEA messages to KML (all in Python):
+https://github.com/JigsawRenaissance/Robo-Magellan/blob/master/blackbox/nmea-to-kml.py
+https://github.com/zvibinyamin/NMEA_TO_CSV-KML
+https://github.com/jessykate/GPS/blob/master/nmea_to_kml.py
+https://github.com/flo-ride/GPS-Python/blob/main/src/converter.py
+
+For all above references, only GPS-Python seems to convert successfully.
