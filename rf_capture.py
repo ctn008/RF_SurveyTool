@@ -3,7 +3,7 @@
 - write for files (BYTES) for sampling duration
 """
 
-from rtlsdr import RtlSdr
+from rtlsdr import * #RtlSdr
 
 SAMPLE_RATE = 2048000
 SAMPLE_LEN  = 4096 * 400

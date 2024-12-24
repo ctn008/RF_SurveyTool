@@ -4,7 +4,7 @@ import serial
 # this port address is for the serial tx/rx pins on the GPIO header
 SERIAL_PORT = '/dev/ttyUSB0'
 # be sure to set this to the same rate used on the Arduino
-SERIAL_RATE = 9600
+SERIAL_RATE = 115200
 
 
 def main():

@@ -17,9 +17,9 @@ from pylab import *
 from rtlsdr import *
 
 # configure device
-for i in range (1):
-    sdr = RtlSdr()
-    sdr.sample_rate = 2.048e6 - i*.1e6
+for i in range (10):
+    sdr = RtlSdr(0)
+    sdr.sample_rate = 2.048e6 #- i*.1e6
     sdr.center_freq = 421e6
     sdr.gain = 49.6
     # 2.56Msps = 512 * 5000 = 1 second 
