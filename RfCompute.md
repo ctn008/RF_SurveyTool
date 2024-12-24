@@ -38,3 +38,11 @@ https://github.com/jessykate/GPS/blob/master/nmea_to_kml.py
 https://github.com/flo-ride/GPS-Python/blob/main/src/converter.py
 
 For all above references, only GPS-Python seems to convert successfully.
+
+Converting NMEA messages to KML is pretty straight forward. Need to decide which information to provide in KML datapoint.
+
+We should provide both time and location information. Time can be used to track signal levels at a location over a period of time.
+
+The default GNSS update is 1 message per second. It means 16-30m accuracy if car speed @ 60-100km/h. To increase the accuracy further, need to speed up the update rate.
+
+### 2.4 Update KML file for different colors and shapes  
