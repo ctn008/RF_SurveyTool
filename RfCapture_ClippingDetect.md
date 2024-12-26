@@ -14,3 +14,7 @@ This rf_sample_signal will also be used to compare / evaluate whether the gain c
 2. Multiple tetra signals to be mixed onto the baseband signal
 3. different signals (channels) should have different signal power level, and distributed across the baseband.
 4. using pluto Tx to transmit via rf cable to rtlsdr receiver - hopefully the signal is large enough to receive and cause clipping. So that we can observe how clipping occurs and how to detect clipping...
+5. Signal should be repeated to generate periodic signal.
+
+Should use GR flowgraph to generate the signal and test ?
+
