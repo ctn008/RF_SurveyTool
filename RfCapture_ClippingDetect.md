@@ -88,4 +88,6 @@ Choosing the Right Technique:
 For the signal of interests, need to know the signal distribution, and whether it is hard clipping or soft clipping. This can be done by observing the actual signal (simulation).
 
 **Hard Clipping: Threshold detection, amplitude histogram, spectral analysis**  
-- 
+- Chuyển đổi từ uint8 (0-255) sang int16_t: *2 - 255  --> range (-255, + 255), with none zero value.
+- to determine clipping, need to calculate: current signal level, trend increase of descrease, upper threshold and lower threshold.
+
