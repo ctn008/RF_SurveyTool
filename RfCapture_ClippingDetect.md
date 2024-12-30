@@ -99,6 +99,6 @@ Using SoapySDR source, with complex bytes output, and push thru histogram block 
 
 It is clearly shown that we can use threshold detection to detect clipping. Need to implement this function. However, instead of writing c code, would like to write c++ code. Currently testing GPT to generate the code with some limited success.
 
+https://github.com/wizardyesterday/RtlSdrDiags/blob/master/radioDiags/src_diags/AutomaticGainControl.cc
 
-
-
+The above code implements AGC for VGA gain while keeping lna & mixer gain unchanged.
