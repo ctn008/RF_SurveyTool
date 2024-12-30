@@ -93,3 +93,12 @@ For the signal of interests, need to know the signal distribution, and whether i
 
 - Check clipping: count occurance of (0,1,2,3,4) and (251, 252, 253, 254, 255), if non-zero --> clipping started happening ?
 - Smoothing histogram data ? 
+
+**RESULTS**
+Using SoapySDR source, with complex bytes output, and push thru histogram block in GR, can see the signal distribution and clearly, the auto agc mode does not work for narrow band signal.
+
+It is clearly shown that we can use threshold detection to detect clipping. Need to implement this function. However, instead of writing c code, would like to write c++ code. Currently testing GPT to generate the code with some limited success.
+
+
+
+
