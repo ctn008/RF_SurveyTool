@@ -158,6 +158,17 @@ Let take a samples block of 16*16384 bytes:
 Assumption: downlink RF signals don't change abruptly ?  Not like DMO signal, where it change over burst duration ~ 56ms.
 From analysis in 5.2, it is likely we will take read size of 4096 bytes. Need to test how the system behave.
 
+**Final Design of AGC control**
+The default sample_read_size is 16384 bytes (equivalent to 3.2ms at 2.56Msps). The sync_read is performed in agcBlockSize of 4096 bytes (0.8ms), equals ~33 Tetra pi4 symbols (@18kSps)
+The histogram of agcBlock shall be computed to find out the max upper and lower, then determine averageMaxVariation.
+If avgMaxVariation < lowerCap then increase to higher gain value.
+If avgMaxVariation > upperCap then decrease to lower gain value.
+
+The lowerCap (80) and upperCap (127) are distanced of 4dB power, equal to the max gain step, to avoid situation of back and forth jump in gain value.
+So basically we have to reserve 4dB for gain control, and thus the dynamic range would be 50dB - 4 = 46dB.
+
+This design can be improved by 1) extend the gain control to VGA gain, 2) measure and calibrate gain at specific 390MHz frequency or other frequencies of interest.
+
 ### 5.4 Calculate location coordinates from the received GPS data
 For every second, receive different GPS data from 03 networks. So how to calculate to get the most accurate location coordinates? How about in case of GPS loss? What kind of gyro data shall be at output ? 
 
