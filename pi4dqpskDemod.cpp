@@ -1,72 +1,16 @@
-#include <vector>
-#include <complex>
-#include <cmath>
-#include <thread>
-#include <future>
-#include <mutex>
-#include <iostream>
-#include <algorithm>
-#include <numeric>
-#include <cassert>  // For assert
-//#include "c:\Users\Home\radioconda\Library\include\fftw3.h"
-
-// Define pi4dqpsk_demod class
-class pi4dqpsk_demod {
-public:
-    // Member variables
-    double sampling_rate;  // in MSPS
-    double down_sampling_rate;  // in KSPS
-    double symbol_rate;  // in KSPS
-    double frequency_xlating;  // in Hz
-
-    // Constructor to initialize the class
-    pi4dqpsk_demod(double samp_rate, double down_samp_rate, double sym_rate, double freq_xlate)
-        : sampling_rate(samp_rate), down_sampling_rate(down_samp_rate), symbol_rate(sym_rate), frequency_xlating(freq_xlate) {}
-
-    // Function prototypes
-    void frequency_translation_and_decimation(const std::vector<std::complex<double>>& input_signal,
-                                              std::vector<std::complex<double>>& output_signal);
-    void rational_resampler(const std::vector<std::complex<double>>& input_signal,
-                            std::vector<std::complex<double>>& output_signal, int interp_factor, int decim_factor);
-    void frequency_lock_loop(const std::vector<std::complex<double>>& input_signal,
-                             std::vector<std::complex<double>>& output_signal);
-    void timing_sync(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal);
-    void cma_equalizer(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal);
-    void differential_phasor_decoder(const std::vector<std::complex<double>>& input_signal, std::vector<int>& decoded_symbols);
-
-    // Integrate the entire pipeline
-    void process(const std::vector<std::complex<double>>& input_signal, std::vector<int>& decoded_symbols);
-
-    // Log intermediate results
-    void log_intermediate_results(const std::vector<std::complex<double>>& signal_after_decimation,
-                                  const std::vector<std::complex<double>>& signal_after_fll,
-                                  const std::vector<std::complex<double>>& signal_after_sync,
-                                  const std::vector<std::complex<double>>& signal_after_equalization);
-private:
-    // Private helper methods
-    std::vector<std::complex<double>> matched_filter(const std::vector<std::complex<double>>& signal, const std::vector<double>& coefficients);
-    std::vector<double> calculate_rrc_filter(double rolloff, double symbol_rate, double sampling_rate, size_t filter_length);
-    std::vector<std::vector<double>> polyphase_filter_bank(const std::vector<double>& filter_taps, size_t num_phases);
-    std::vector<double> design_filter(size_t num_taps, double symbol_rate, double sampling_rate);
-    std::vector<std::complex<double>> initialize_taps(size_t num_taps);
-    int decode_dqpsk_symbol(double phase_diff);
-};
-
+#include "pi4dqpskDemod.h"
+// Implement pi4dqpsk_demod class
 
 // Function to calculate filter coefficients for low-pass filter
 std::vector<double> calculate_filter_coefficients(double sampling_rate, double cutoff_freq, double transition_width, size_t filter_length) {
-    // Calculate the normalized cutoff frequency
-    double normalized_cutoff = cutoff_freq / (sampling_rate / 2);
-    double normalized_transition_width = transition_width / (sampling_rate / 2);
 
-    // Create a vector for the filter coefficients
     std::vector<double> coefficients(filter_length);
-
+    double normalized_cutoff = cutoff_freq / (sampling_rate);
     // Calculate the ideal sinc filter coefficients
+    int mid_point = filter_length / 2;
     for (size_t i = 0; i < filter_length; ++i) {
-        int mid_point = filter_length / 2;
         if (i == mid_point) {
-            coefficients[i] = 2 * normalized_cutoff;  // Ideal sinc at the center (midpoint)
+            coefficients[i] = 2.0 * normalized_cutoff;  // Ideal sinc at the center (midpoint)
         } else {
             coefficients[i] = std::sin(2 * M_PI * normalized_cutoff * (i - mid_point)) / (i - mid_point);
         }
@@ -86,10 +30,133 @@ std::vector<double> calculate_filter_coefficients(double sampling_rate, double c
     return coefficients;
 }
 
+// Hamming window function
+double hamming(int n, int N) {
+    return 0.54 - 0.46 * std::cos(2.0 * M_PI * n / (N - 1));
+}
+
+// Low-pass filter design with Hamming window
+std::vector<double> designLowPassFilter(double sample_rate, double cutoff_freq, double transition_width, size_t filter_length) {
+    if (cutoff_freq <= 0 || transition_width <= 0 || filter_length <= 0 || sample_rate <= 0 || cutoff_freq >= sample_rate / 2.0) {
+        std::cerr << "Invalid filter parameters." << std::endl;
+        return {};
+    }
+
+    if (filter_length % 2 == 0) {
+        std::cerr << "Filter length must be odd." << std::endl;
+        return {};
+    }
+
+    std::vector<double> filter_coeffs(filter_length);
+    int center = filter_length / 2;
+    double normalized_cutoff = cutoff_freq / sample_rate;
+
+    for (size_t n = 0; n < filter_length; ++n) {
+        if (n == center) {
+            filter_coeffs[n] = 2.0 * normalized_cutoff;
+        } else {
+            filter_coeffs[n] = std::sin(2.0 * M_PI * normalized_cutoff * (n - center)) / (M_PI * (n - center));
+        }
+        filter_coeffs[n] *= hamming(n, filter_length);
+    }
+
+    // Normalize to sum of 1 (Unity Gain at DC)
+    double sum = std::accumulate(filter_coeffs.begin(), filter_coeffs.end(), 0.0);
+    if (sum != 0.0) { // Avoid division by zero
+        for (size_t i = 0; i < filter_length; ++i) {
+            filter_coeffs[i] /= sum;
+        }
+   }
+
+    return filter_coeffs;
+}
+
+// Polyphase decomposition and filtering for decimation (same as before)
+std::vector<std::complex<double>> polyphaseDecimation(const std::vector<std::complex<double>>& input, const std::vector<double>& filterCoeffs, int decimationFactor) {
+    int numCoeffs = filterCoeffs.size();
+    int numPolyphaseComponents = decimationFactor;
+
+    std::vector<std::vector<double>> polyphaseFilters(numPolyphaseComponents);
+    for (int i = 0; i < numCoeffs; ++i) {
+        polyphaseFilters[i % numPolyphaseComponents].push_back(filterCoeffs[i]);
+    }
+
+    std::vector<std::complex<double>> output;
+    int inputLength = input.size();
+
+    for (int n = 0; n < inputLength / decimationFactor; ++n) {
+        std::complex<double> outputSample(0.0, 0.0);
+        for (int i = 0; i < numPolyphaseComponents; ++i) {
+            double sum = 0.0;
+            int polyphaseLength = polyphaseFilters[i].size();
+            for (int j = 0; j < polyphaseLength; ++j) {
+                int inputIndex = n * decimationFactor + i - j;
+                if (inputIndex >= 0 && inputIndex < inputLength) {
+                    sum += input[inputIndex].real() * polyphaseFilters[i][j];
+                }
+            }
+            outputSample += sum;
+        }
+        output.push_back(outputSample);
+    }
+
+    return output;
+}
+
 // Implementation of Frequency Translation and Decimation
-void pi4dqpsk_demod::frequency_translation_and_decimation(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal) {
-    // Decimation factor
+void pi4dqpsk_demod::freq_xlating_decim(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal) {
+
     size_t decimation_factor = static_cast<size_t>(sampling_rate / down_sampling_rate);
+    std::cout << "decimation_factor =" << decimation_factor << std::endl;
+
+    if (decimation_factor <= 0) {
+        std::cerr << "Decimation factor must be positive." << std::endl;
+        return;
+    }
+    output_signal.clear(); // Clear the output vector before filling it. Important!
+
+    int inputLength = input_signal.size();
+    std::vector<std::complex<double>> translatedSignal(inputLength);
+    for (size_t n = 0; n < inputLength; ++n) {
+        double phase = 2.0 * M_PI * freq_xlating / sampling_rate * n;
+        translatedSignal[n] = input_signal[n] * std::exp(std::complex<double>(0.0, phase));
+    }
+
+    // Filter specifications
+    double cutoff_freq = 12.5e3;  // 12.5 kHz (Bandwidth)
+    double transition_width = 2.5e3; // 2.5 kHz (Transition width)
+    size_t filter_length = 101;   // Length of the low-pass filter (number of taps)
+
+    // Calculate the filter coefficients
+    std::vector<double> filter_coefficients = calculate_filter_coefficients(sampling_rate, cutoff_freq, transition_width, filter_length);
+    //print filter_coefficients
+    std::cout << "\nfilter_coefficients.size() = " << filter_coefficients.size() << std::endl;
+    for (size_t i = 0; i < filter_coefficients.size(); ++i) {
+        std::cout << filter_coefficients[i] << " ";
+    }
+
+    std::vector<double> filterCoefficients = designLowPassFilter(sampling_rate, cutoff_freq, transition_width, filter_length);
+    //print filter coefficients
+    std::cout << "\nfilterCoefficients.size() = " << filterCoefficients.size() << std::endl;
+    for (size_t i = 0; i < filterCoefficients.size(); ++i) {
+        std::cout << filterCoefficients[i] << " ";
+    }
+    // print ratio of filter_coefficients and filterCoefficients
+    for (size_t i = 0; i < filterCoefficients.size(); ++i) {
+        std::cout << filter_coefficients[i] / filterCoefficients[i] << std::endl;
+    }
+
+    // Apply filtering *after* frequency translation
+    // Use polyphase decimation
+    // output_signal = polyphaseDecimation(translatedSignal, filter_coefficients, decimation_factor);
+    output_signal = polyphaseDecimation(translatedSignal, filterCoefficients, decimation_factor);
+
+}
+
+/*     // Decimation factor
+    size_t decimation_factor = static_cast<size_t>(sampling_rate / down_sampling_rate);
+
+    std::cout << "decimation_factor =" << decimation_factor << std::endl;
 
     // Filter specifications
     double cutoff_freq = 12.5e3;  // 12.5 kHz (Bandwidth)
@@ -113,7 +180,7 @@ void pi4dqpsk_demod::frequency_translation_and_decimation(const std::vector<std:
     output_signal.clear();
 
     // Frequency translation factor (complex exponential)
-    double frequency_translation_factor = 2.0 * M_PI * frequency_xlating / sampling_rate;
+    double frequency_translation_factor = 2.0 * M_PI * freq_xlating / sampling_rate;
 
     // Apply filtering, frequency translation, and decimation
     for (size_t i = 0; i < input_signal.size(); ++i) {
@@ -134,9 +201,10 @@ void pi4dqpsk_demod::frequency_translation_and_decimation(const std::vector<std:
         // Only keep every `decimation_factor`-th sample in the output signal
         if (i % decimation_factor == 0) {
             output_signal.push_back(filtered_sample);
+            std::cout << "output_signal.size() = " << output_signal.size() << std::endl;
         }
     }
-}
+} */
 
 void pi4dqpsk_demod::rational_resampler(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal, int interp_factor, int decim_factor) {
     // Filter specifications (similar to previous function)
@@ -181,7 +249,7 @@ void pi4dqpsk_demod::rational_resampler(const std::vector<std::complex<double>>&
 }
 
 // Implementation of Frequency Lock Loop (FLL) with Band-Edge
-void pi4dqpsk_demod::frequency_lock_loop(const std::vector<std::complex<double>>& input_signal,
+void pi4dqpsk_demod::freq_lock_loop(const std::vector<std::complex<double>>& input_signal,
                                          std::vector<std::complex<double>>& output_signal) {
     // Step 1: Matched Filter with Root Raised Cosine (RRC)
     double rolloff = 0.35;  // RRC roll-off factor
@@ -256,8 +324,7 @@ std::vector<double> pi4dqpsk_demod::calculate_rrc_filter(double rolloff, double 
 
 
 // Implementation of Timing Synchronization
-void pi4dqpsk_demod::timing_sync(const std::vector<std::complex<double>>& input_signal,
-                                 std::vector<std::complex<double>>& output_signal) {
+void pi4dqpsk_demod::timing_sync(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal) {
     // Step 1: Design a 32-tap filter for polyphase filtering
     size_t num_taps = 32;  // Filter size
     std::vector<double> filter_taps = design_filter(num_taps, symbol_rate, down_sampling_rate);
@@ -331,7 +398,7 @@ std::vector<double> pi4dqpsk_demod::design_filter(size_t num_taps, double symbol
 }
 
 // Implementation of CMA Equalizer
-void cma_equalizer(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal) {
+void  pi4dqpsk_demod::cma_equalizer(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal) {
     const int equalizer_taps = 15;  // local variable, default to 15 taps
     // Assert that the input signal size is larger than the number of equalizer taps
     assert(input_signal.size() > equalizer_taps && "Input signal must be longer than equalizer taps");
@@ -381,7 +448,7 @@ std::vector<std::complex<double>> pi4dqpsk_demod::initialize_taps(size_t num_tap
 }
 
 // Implementation of Differential Phasor Decoder
-void pi4dqpsk_demod::differential_phasor_decoder(const std::vector<std::complex<double>>& input_signal, std::vector<int>& decoded_symbols){
+void pi4dqpsk_demod::diff_phasor_decoder(const std::vector<std::complex<double>>& input_signal, std::vector<int>& decoded_symbols){
 
     // Ensure the input signal is non-empty
     if (input_signal.empty()) {
@@ -438,83 +505,59 @@ int pi4dqpsk_demod::decode_dqpsk_symbol(double phase_diff) {
 
 // Integrate the entire processing pipeline with parallelism
 void pi4dqpsk_demod::process(const std::vector<std::complex<double>>& input_signal, std::vector<int>& decoded_symbols) {
-    std::vector<std::complex<double>> signal_after_decimation;
-    std::vector<std::complex<double>> signal_after_fll;
-    std::vector<std::complex<double>> signal_after_sync;
+    std::vector<std::complex<double>> sig_after_decim;
+    std::vector<std::complex<double>> sig_after_fll;
+    std::vector<std::complex<double>> sig_after_sync;
     std::vector<std::complex<double>> signal_after_equalization;
 
-    std::cout << "Before demod::process Step 1." << std::endl;
+    std::cout << "\nBefore demod::process Step 1." << std::endl;
 
     // Step 1: Frequency Translation and Decimation
-    auto decimation_task = std::async(std::launch::async, &pi4dqpsk_demod::frequency_translation_and_decimation, this, std::ref(input_signal), std::ref(signal_after_decimation));
+    auto decimation_task = std::async(std::launch::async, &pi4dqpsk_demod::freq_xlating_decim, this, std::ref(input_signal), std::ref(sig_after_decim));
     // Wait for decimation to finish
     decimation_task.get();
     
-    std::cout << "Process decimation_task done." << std::endl;
+    std::cout << "\nProcess decimation_task done." << std::endl;
 
     // Step 2: Frequency Lock Loop (FLL)
-    auto fll_task = std::async(std::launch::async, &pi4dqpsk_demod::frequency_lock_loop, this, std::ref(signal_after_decimation), std::ref(signal_after_fll));
+    auto fll_task = std::async(std::launch::async, &pi4dqpsk_demod::freq_lock_loop, this, std::ref(sig_after_decim), std::ref(sig_after_fll));
     // Wait for FLL to finish
     fll_task.get();
 
-    std::cout << "Process fll_task done." << std::endl;
+    std::cout << "\nProcess fll_task done." << std::endl;
 
 
     // Step 3: Timing Synchronization
-    auto sync_task = std::async(std::launch::async, &pi4dqpsk_demod::frequency_lock_loop/*timing_sync*/, this, std::ref(signal_after_fll), std::ref(signal_after_sync));
+    auto sync_task = std::async(std::launch::async, &pi4dqpsk_demod::timing_sync, this, std::ref(sig_after_fll), std::ref(sig_after_sync));
     // Wait for synchronization to finish
     sync_task.get();
 
-    std::cout << "Process sync_task done." << std::endl;
+    std::cout << "\nProcess sync_task done." << std::endl;
 
     // Step 4: CMA Equalization
-    auto cma_task = std::async(std::launch::async, &pi4dqpsk_demod::timing_sync/*cma_equalizer*/, this, std::ref(signal_after_sync), std::ref(signal_after_equalization));
+    auto cma_task = std::async(std::launch::async, &pi4dqpsk_demod::cma_equalizer, this, std::ref(sig_after_sync), std::ref(signal_after_equalization));
     // Wait for equalization to finish
     cma_task.get();
 
-    std::cout << "Process cma_task done." << std::endl;
+    std::cout << "\nProcess cma_task done." << std::endl;
 
 
     // Step 5: Differential Phasor Decoder
-    differential_phasor_decoder(signal_after_equalization, decoded_symbols);
+    diff_phasor_decoder(signal_after_equalization, decoded_symbols);
 
-    std::cout << "Process diff_phasor_decoder done." << std::endl;
+    std::cout << "\nProcess diff_phasor_decoder done." << std::endl;
 
     // Log intermediate results for debugging
-    log_intermediate_results(signal_after_decimation, signal_after_fll, signal_after_sync, signal_after_equalization);
+    log_intermediate_results(sig_after_decim, sig_after_fll, sig_after_sync, signal_after_equalization);
 }
 
 // Log intermediate results for debugging purposes
-void pi4dqpsk_demod::log_intermediate_results(const std::vector<std::complex<double>>& signal_after_decimation,
-                                              const std::vector<std::complex<double>>& signal_after_fll,
-                                              const std::vector<std::complex<double>>& signal_after_sync,
+void pi4dqpsk_demod::log_intermediate_results(const std::vector<std::complex<double>>& sig_after_decim,
+                                              const std::vector<std::complex<double>>& sig_after_fll,
+                                              const std::vector<std::complex<double>>& sig_after_sync,
                                               const std::vector<std::complex<double>>& signal_after_equalization) {
-    std::cout << "Signal after Decimation: " << signal_after_decimation.size() << " samples\n";
-    std::cout << "Signal after FLL: " << signal_after_fll.size() << " samples\n";
-    std::cout << "Signal after Timing Sync: " << signal_after_sync.size() << " samples\n";
+    std::cout << "Signal after Decimation: " << sig_after_decim.size() << " samples\n";
+    std::cout << "Signal after FLL: " << sig_after_fll.size() << " samples\n";
+    std::cout << "Signal after Timing Sync: " << sig_after_sync.size() << " samples\n";
     std::cout << "Signal after CMA Equalization: " << signal_after_equalization.size() << " samples\n";
-}
-
-int main() {
-    // Define sample signal (for testing purposes, we simulate some data)
-    std::vector<std::complex<double>> input_signal(16384*160, std::complex<double>(1.0, 0.0));  // Dummy signal
-
-    std::cout << "Before call demod." << std::endl;
-    // Create an instance of the demodulator
-    pi4dqpsk_demod demod(2.56, 72.0, 18.0, 75.0);
-
-    // Output decoded symbols
-    std::vector<int> decoded_symbols;
-
-    std::cout << "Before call demod process." << std::endl;
-    // Process the signal
-    demod.process(input_signal, decoded_symbols);
-
-    // Log the decoded symbols
-    for (auto symbol : decoded_symbols) {
-        std::cout << symbol << " ";
-    }
-    std::cout << "Before return from main." << std::endl;
-
-    return 0;
 }
