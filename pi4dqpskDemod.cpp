@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cassert>  // For assert
+//#include "c:\Users\Home\radioconda\Library\include\fftw3.h"
 
 // Define pi4dqpsk_demod class
 class pi4dqpsk_demod {
@@ -442,28 +443,42 @@ void pi4dqpsk_demod::process(const std::vector<std::complex<double>>& input_sign
     std::vector<std::complex<double>> signal_after_sync;
     std::vector<std::complex<double>> signal_after_equalization;
 
+    std::cout << "Before demod::process Step 1." << std::endl;
+
     // Step 1: Frequency Translation and Decimation
     auto decimation_task = std::async(std::launch::async, &pi4dqpsk_demod::frequency_translation_and_decimation, this, std::ref(input_signal), std::ref(signal_after_decimation));
+    // Wait for decimation to finish
+    decimation_task.get();
+    
+    std::cout << "Process decimation_task done." << std::endl;
 
     // Step 2: Frequency Lock Loop (FLL)
     auto fll_task = std::async(std::launch::async, &pi4dqpsk_demod::frequency_lock_loop, this, std::ref(signal_after_decimation), std::ref(signal_after_fll));
-
-    // Wait for decimation and FLL to finish
-    decimation_task.get();
+    // Wait for FLL to finish
     fll_task.get();
 
+    std::cout << "Process fll_task done." << std::endl;
+
+
     // Step 3: Timing Synchronization
-    auto sync_task = std::async(std::launch::async, &pi4dqpsk_demod::timing_sync, this, std::ref(signal_after_fll), std::ref(signal_after_sync));
+    auto sync_task = std::async(std::launch::async, &pi4dqpsk_demod::frequency_lock_loop/*timing_sync*/, this, std::ref(signal_after_fll), std::ref(signal_after_sync));
+    // Wait for synchronization to finish
+    sync_task.get();
+
+    std::cout << "Process sync_task done." << std::endl;
 
     // Step 4: CMA Equalization
-    auto cma_task = std::async(std::launch::async, &pi4dqpsk_demod::cma_equalizer, this, std::ref(signal_after_sync), std::ref(signal_after_equalization));
-
-    // Wait for synchronization and equalization to finish
-    sync_task.get();
+    auto cma_task = std::async(std::launch::async, &pi4dqpsk_demod::timing_sync/*cma_equalizer*/, this, std::ref(signal_after_sync), std::ref(signal_after_equalization));
+    // Wait for equalization to finish
     cma_task.get();
+
+    std::cout << "Process cma_task done." << std::endl;
+
 
     // Step 5: Differential Phasor Decoder
     differential_phasor_decoder(signal_after_equalization, decoded_symbols);
+
+    std::cout << "Process diff_phasor_decoder done." << std::endl;
 
     // Log intermediate results for debugging
     log_intermediate_results(signal_after_decimation, signal_after_fll, signal_after_sync, signal_after_equalization);
@@ -482,14 +497,16 @@ void pi4dqpsk_demod::log_intermediate_results(const std::vector<std::complex<dou
 
 int main() {
     // Define sample signal (for testing purposes, we simulate some data)
-    std::vector<std::complex<double>> input_signal(1024, std::complex<double>(1.0, 0.0));  // Dummy signal
+    std::vector<std::complex<double>> input_signal(16384*160, std::complex<double>(1.0, 0.0));  // Dummy signal
 
+    std::cout << "Before call demod." << std::endl;
     // Create an instance of the demodulator
     pi4dqpsk_demod demod(2.56, 72.0, 18.0, 75.0);
 
     // Output decoded symbols
     std::vector<int> decoded_symbols;
 
+    std::cout << "Before call demod process." << std::endl;
     // Process the signal
     demod.process(input_signal, decoded_symbols);
 
@@ -497,6 +514,7 @@ int main() {
     for (auto symbol : decoded_symbols) {
         std::cout << symbol << " ";
     }
+    std::cout << "Before return from main." << std::endl;
 
     return 0;
 }
