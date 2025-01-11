@@ -2,17 +2,22 @@
 // Implement pi4dqpsk_demod class
 
 // Function to calculate filter coefficients for low-pass filter
-std::vector<double> calculate_filter_coefficients(double sampling_rate, double cutoff_freq, double transition_width, size_t filter_length) {
+/* ctn008 function provided by GPT - verified by comparing code with gr.filter compute_ntaps*/
+std::vector<double> calculate_filter_coefficients(double sampling_rate, double cutoff_freq, double transition_width) {
+
+    size_t filter_length = compute_ntaps(sampling_rate, transition_width); 
+    // Determine length of the low-pass filter (number of taps)
+    /* for filter_length need to calculate depending on sampling rate and transition bandwidth */
 
     std::vector<double> coefficients(filter_length);
     double normalized_cutoff = cutoff_freq / (sampling_rate);
     // Calculate the ideal sinc filter coefficients
-    int mid_point = filter_length / 2;
+    int mid_point = (filter_length -1) / 2; // filter_length is odd
     for (size_t i = 0; i < filter_length; ++i) {
         if (i == mid_point) {
             coefficients[i] = 2.0 * normalized_cutoff;  // Ideal sinc at the center (midpoint)
         } else {
-            coefficients[i] = std::sin(2 * M_PI * normalized_cutoff * (i - mid_point)) / (i - mid_point);
+            coefficients[i] = std::sin(2 * M_PI * normalized_cutoff * (i - mid_point)) / (M_PI * (i - mid_point));
         }
     }
 
@@ -22,9 +27,13 @@ std::vector<double> calculate_filter_coefficients(double sampling_rate, double c
     }
 
     // Normalize the filter coefficients
-    double sum = std::accumulate(coefficients.begin(), coefficients.end(), 0.0);
+    double sum = coefficients[mid_point];  
+    for (size_t i = 1; i <= mid_point; ++i) {
+        sum += 2 * coefficients[mid_point + i];  // Symmetric coefficients
+    }
+    double scale = 1.0 / sum;
     for (size_t i = 0; i < filter_length; ++i) {
-        coefficients[i] /= sum;
+        coefficients[i] *= scale;
     }
 
     return coefficients;
@@ -36,16 +45,14 @@ double hamming(int n, int N) {
 }
 
 // Low-pass filter design with Hamming window
-std::vector<double> designLowPassFilter(double sample_rate, double cutoff_freq, double transition_width, size_t filter_length) {
-    if (cutoff_freq <= 0 || transition_width <= 0 || filter_length <= 0 || sample_rate <= 0 || cutoff_freq >= sample_rate / 2.0) {
+std::vector<double> designLowPassFilter(double sample_rate, double cutoff_freq, double transition_width) {
+    if (cutoff_freq <= 0 || transition_width <= 0 || sample_rate <= 0 || cutoff_freq >= sample_rate / 2.0) {
         std::cerr << "Invalid filter parameters." << std::endl;
         return {};
     }
-
-    if (filter_length % 2 == 0) {
-        std::cerr << "Filter length must be odd." << std::endl;
-        return {};
-    }
+    size_t filter_length = compute_ntaps(sample_rate, transition_width); 
+    // Determine length of the low-pass filter (number of taps)
+    /* for filter_length need to calculate depending on sampling rate and transition bandwidth */
 
     std::vector<double> filter_coeffs(filter_length);
     int center = filter_length / 2;
@@ -61,10 +68,15 @@ std::vector<double> designLowPassFilter(double sample_rate, double cutoff_freq, 
     }
 
     // Normalize to sum of 1 (Unity Gain at DC)
-    double sum = std::accumulate(filter_coeffs.begin(), filter_coeffs.end(), 0.0);
+    // Normalize the filter coefficients
+    double sum = filter_coeffs[center];  
+    for (size_t i = 1; i <= center; ++i) {
+        sum += 2 * filter_coeffs[center + i];  // Symmetric coefficients
+    }
+    double scale = 1.0 / sum;
     if (sum != 0.0) { // Avoid division by zero
         for (size_t i = 0; i < filter_length; ++i) {
-            filter_coeffs[i] /= sum;
+            filter_coeffs[i] *= scale;
         }
    }
 
@@ -103,6 +115,23 @@ std::vector<std::complex<double>> polyphaseDecimation(const std::vector<std::com
     return output;
 }
 
+int compute_ntaps(double sampling_rate, double transition_width) {
+    // set window type to Hamming and attenuation_dB to 53, param ???
+    // int ntaps = static_cast<int>(3.3 * sampling_rate / transition_width);
+    int ntaps = static_cast<int>(53 * sampling_rate / (22.0 * transition_width));
+    if ((ntaps & 1) == 0) // if even...
+        ntaps++;          // ...make odd
+    return ntaps;
+    // more accurate calculation from firdes
+    /*
+    // Based on formula from Multirate Signal Processing for Communications Systems, fredric j harris
+    // for Hamming Windows: attenuation_dB = 53
+    int ntaps = (int)(attenuation_dB * sampling_freq / (22.0 * transition_width));
+    if ((ntaps & 1) == 0) // if even...
+        ntaps++;          // ...make odd
+    return ntaps;
+    */
+}
 // Implementation of Frequency Translation and Decimation
 void pi4dqpsk_demod::freq_xlating_decim(const std::vector<std::complex<double>>& input_signal, std::vector<std::complex<double>>& output_signal) {
 
@@ -125,26 +154,10 @@ void pi4dqpsk_demod::freq_xlating_decim(const std::vector<std::complex<double>>&
     // Filter specifications
     double cutoff_freq = 12.5e3;  // 12.5 kHz (Bandwidth)
     double transition_width = 2.5e3; // 2.5 kHz (Transition width)
-    size_t filter_length = 101;   // Length of the low-pass filter (number of taps)
 
     // Calculate the filter coefficients
-    std::vector<double> filter_coefficients = calculate_filter_coefficients(sampling_rate, cutoff_freq, transition_width, filter_length);
-    //print filter_coefficients
-    std::cout << "\nfilter_coefficients.size() = " << filter_coefficients.size() << std::endl;
-    for (size_t i = 0; i < filter_coefficients.size(); ++i) {
-        std::cout << filter_coefficients[i] << " ";
-    }
-
-    std::vector<double> filterCoefficients = designLowPassFilter(sampling_rate, cutoff_freq, transition_width, filter_length);
-    //print filter coefficients
-    std::cout << "\nfilterCoefficients.size() = " << filterCoefficients.size() << std::endl;
-    for (size_t i = 0; i < filterCoefficients.size(); ++i) {
-        std::cout << filterCoefficients[i] << " ";
-    }
-    // print ratio of filter_coefficients and filterCoefficients
-    for (size_t i = 0; i < filterCoefficients.size(); ++i) {
-        std::cout << filter_coefficients[i] / filterCoefficients[i] << std::endl;
-    }
+    // std::vector<double> filter_coefficients = calculate_filter_coefficients(sampling_rate, cutoff_freq, transition_width);
+    std::vector<double> filterCoefficients = designLowPassFilter(sampling_rate, cutoff_freq, transition_width);
 
     // Apply filtering *after* frequency translation
     // Use polyphase decimation
