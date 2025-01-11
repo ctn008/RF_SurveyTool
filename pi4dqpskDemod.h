@@ -8,8 +8,11 @@
 #include <algorithm>
 #include <numeric>
 #include <cassert>  // For assert
-//#include "c:\Users\Home\radioconda\Library\include\fftw3.h"
 
+double hamming(int n, int N);
+int compute_ntaps(double sampling_rate, double transition_width);
+std::vector<double> calculate_filter_coefficients(double sampling_rate, double cutoff_freq, double transition_width);
+std::vector<double> designLowPassFilter(double sample_rate, double cutoff_freq, double transition_width);
 // Define pi4dqpsk_demod class
 class pi4dqpsk_demod {
 public:

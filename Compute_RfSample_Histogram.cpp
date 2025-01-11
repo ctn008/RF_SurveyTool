@@ -3,14 +3,40 @@
 #include <vector>
 #include <cstdint>
 #include <chrono>
+#include <string>
+#include <cstring> // For strcmp
 
-int main() {
+int main(int argc, char *argv[]) {
     std::cout << "Calculating histogram..."  << std::endl;
     // Record the start time
     auto start = std::chrono::high_resolution_clock::now();
 
-    const std::string inputFileName = "/home/ctn008/myrtlsdr/build/abc/1734852476.uint8"; // Input binary file
-    const std::string outputFileName = "/home/ctn008/myrtlsdr/build/abc/1734852476_histogram.int16"; // Output text file
+    std::string filename;
+    // Check if the number of arguments is sufficient
+    if (argc < 3) {
+        std::cout << "Usage: " << argv[0] << " -f <filename>" << std::endl;
+        return 1;
+    }
+
+    // Iterate through the arguments to find the "-f" flag
+    bool file_flag = false;
+    for (int i = 1; i < argc - 1; ++i) {
+        if (std::strcmp(argv[i], "-f") == 0) { // Check if the argument is "-f"
+            filename = argv[i + 1]; // Assign the next argument as the filename
+            file_flag = true;
+        }
+    }
+
+    // If the "-f" flag was not found
+    if (!file_flag) {
+        std::cerr << "Error: Missing or invalid '-f' flag" << std::endl;
+        std::cout << "Usage: " << argv[0] << " -f <filename>" << std::endl;
+        return 1;
+    }
+
+
+    const std::string inputFileName = filename; // Input binary file
+    const std::string outputFileName = filename + "_histogram_int16"; // Output text file
     const size_t chunkSize = 16384; // Length of each chunk
     const int histogramSize = 256; // Covers range [0, 255]
     std::vector<uint8_t> buffer(chunkSize);

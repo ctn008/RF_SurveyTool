@@ -60,6 +60,24 @@
         "text_encoding": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cstring": "cpp",
+        "any": "cpp",
+        "hash_map": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "ranges": "cpp",
+        "cinttypes": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp",
+        "csignal": "cpp",
+        "regex": "cpp"
     }
 }

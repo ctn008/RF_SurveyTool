@@ -5,34 +5,31 @@
 /* ctn008 function provided by GPT - verified by comparing code with gr.filter compute_ntaps*/
 std::vector<double> calculate_filter_coefficients(double sampling_rate, double cutoff_freq, double transition_width) {
 
-    size_t filter_length = compute_ntaps(sampling_rate, transition_width); 
-    // Determine length of the low-pass filter (number of taps)
-    /* for filter_length need to calculate depending on sampling rate and transition bandwidth */
-
+    int filter_length = compute_ntaps(sampling_rate, transition_width); 
     std::vector<double> coefficients(filter_length);
-    double normalized_cutoff = cutoff_freq / (sampling_rate);
+    double normalized_cutoff = 2 * M_PI * cutoff_freq / sampling_rate;
     // Calculate the ideal sinc filter coefficients
     int mid_point = (filter_length -1) / 2; // filter_length is odd
-    for (size_t i = 0; i < filter_length; ++i) {
+    for (int i = 0; i < filter_length; ++i) {
         if (i == mid_point) {
-            coefficients[i] = 2.0 * normalized_cutoff;  // Ideal sinc at the center (midpoint)
+            coefficients[i] = 2.0 * cutoff_freq / sampling_rate * hamming(i, filter_length);  // Ideal sinc at the center (midpoint)
         } else {
-            coefficients[i] = std::sin(2 * M_PI * normalized_cutoff * (i - mid_point)) / (M_PI * (i - mid_point));
+            coefficients[i] = std::sin(normalized_cutoff * (i - mid_point)) / (M_PI * (i - mid_point)) * hamming(i, filter_length);  
         }
     }
 
-    // Apply windowing (Hamming window)
-    for (size_t i = 0; i < filter_length; ++i) {
-        coefficients[i] *= 0.54 - 0.46 * std::cos(2 * M_PI * i / (filter_length - 1));
-    }
+    // // Apply windowing (Hamming window)
+    // for (int i = 0; i < filter_length; ++i) {
+    //     coefficients[i] *= 0.54 - 0.46 * std::cos(2 * M_PI * i / (filter_length - 1));
+    // }
 
     // Normalize the filter coefficients
     double sum = coefficients[mid_point];  
-    for (size_t i = 1; i <= mid_point; ++i) {
+    for (int i = 1; i <= mid_point; ++i) {
         sum += 2 * coefficients[mid_point + i];  // Symmetric coefficients
     }
     double scale = 1.0 / sum;
-    for (size_t i = 0; i < filter_length; ++i) {
+    for (int i = 0; i < filter_length; ++i) {
         coefficients[i] *= scale;
     }
 
@@ -46,29 +43,24 @@ double hamming(int n, int N) {
 
 // Low-pass filter design with Hamming window
 std::vector<double> designLowPassFilter(double sample_rate, double cutoff_freq, double transition_width) {
+
     if (cutoff_freq <= 0 || transition_width <= 0 || sample_rate <= 0 || cutoff_freq >= sample_rate / 2.0) {
         std::cerr << "Invalid filter parameters." << std::endl;
         return {};
     }
-    size_t filter_length = compute_ntaps(sample_rate, transition_width); 
-    // Determine length of the low-pass filter (number of taps)
-    /* for filter_length need to calculate depending on sampling rate and transition bandwidth */
-
+    int filter_length = compute_ntaps(sample_rate, transition_width);
     std::vector<double> filter_coeffs(filter_length);
-    int center = filter_length / 2;
-    double normalized_cutoff = cutoff_freq / sample_rate;
-
-    for (size_t n = 0; n < filter_length; ++n) {
-        if (n == center) {
-            filter_coeffs[n] = 2.0 * normalized_cutoff;
+    int center = (filter_length-1) / 2;
+    double normalized_cutoff = 2 * M_PI * cutoff_freq / sample_rate;
+    for (int n = -center; n <= center; ++n) {
+        if (n == 0) {
+            filter_coeffs[n+center] = normalized_cutoff / M_PI * hamming(n+center, filter_length);
         } else {
-            filter_coeffs[n] = std::sin(2.0 * M_PI * normalized_cutoff * (n - center)) / (M_PI * (n - center));
+            filter_coeffs[n+center] = std::sin(normalized_cutoff * n) / (M_PI * n) * hamming(n+center, filter_length);
         }
-        filter_coeffs[n] *= hamming(n, filter_length);
     }
 
     // Normalize to sum of 1 (Unity Gain at DC)
-    // Normalize the filter coefficients
     double sum = filter_coeffs[center];  
     for (size_t i = 1; i <= center; ++i) {
         sum += 2 * filter_coeffs[center + i];  // Symmetric coefficients
@@ -223,10 +215,9 @@ void pi4dqpsk_demod::rational_resampler(const std::vector<std::complex<double>>&
     // Filter specifications (similar to previous function)
     double cutoff_freq = 12.5e3;  // 12.5 kHz (Bandwidth)
     double transition_width = 5e3; // 5 kHz (Transition width)
-    size_t filter_length = 101;   // Length of the low-pass filter (number of taps)
 
     // Calculate filter coefficients (low-pass filter for interpolation)
-    std::vector<double> filter_coefficients = calculate_filter_coefficients(sampling_rate, cutoff_freq, transition_width, filter_length);
+    std::vector<double> filter_coefficients = calculate_filter_coefficients(sampling_rate, cutoff_freq, transition_width);
 
     // Create an upsampled (interpolated) signal
     std::vector<std::complex<double>> upsampled_signal;

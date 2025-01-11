@@ -49,7 +49,7 @@ void plotHistogramWithGnuplot(const std::vector<uint8_t>& data) {
 
 int main() {
     // Example input vector of uint8_t
-    std::vector<uint8_t> data = {10, 20, 10, 50, 20, 20, 255, 0, 0, 10, 50, 255, 255};
+    std::vector<uint8_t> data = {1, 1, 1, 0, 20, 10, 50, 20, 20, 255, 0, 0, 10, 50, 2, 55, 170, 171, 171, 173, 241, 241, 241, 241, 241, 255};
 
     // Call the function to plot the histogram
     plotHistogramWithGnuplot(data);

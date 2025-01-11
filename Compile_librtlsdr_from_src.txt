@@ -1,6 +1,6 @@
 Compile librtlsdr
 
-
+WINDOWS
 1. Compile with static libraries
 
 gcc -c D:\myrtlsdr\src\librtlsdr.c -o librtlsdr.o -ID:\myrtlsdr\include (to specify path for "rtl-sdr.h")
@@ -17,5 +17,20 @@ g++ -std=c++17 -o agc_test.exe RtlSdrCpp_AgcTest.cpp RtlSdrCpp.cpp -ID:\myrtlsdr
 
 g++ -std=c++17 -o agc_test.exe RtlSdrCpp_AgcTest.cpp RtlSdrCpp.cpp -ID:\myrtlsdr\include -ID:\MinGW64\include D:\myrtlsdr\librtlsdr.o D:\mingw64\lib\libusb-1.0.dll.a .\tuner_e4k.o .\tuner_fc0012.o .\tuner_fc0013.o .\tuner_r82xx.o .\tuner_fc2580.o
 
+
+LINUX
+Compile from source
+gcc -c ./src/librtlsdr.c -o librtlsdr.o -I./include -I/usr/include/libusb-1.0/
+gcc -c ./src/tuner_e4k.c -o tuner_e4k.o -I./include
+gcc -c ./src/tuner_fc0012.c -o tuner_fc0012.o -I./include
+gcc -c ./src/tuner_fc0013.c -o tuner_fc0013.o -I./include
+gcc -c ./src/tuner_r82xx.c -o tuner_r82xx.o -I./include
+gcc -c ./src/tuner_fc2580.c -o tuner_fc2580.o -I./include
+g++ -std=c++17 -o RfCaptureCpp.exe RfCaptureCpp.cpp RtlSdrCpp.cpp -I./include ./librtlsdr.o  ./tuner_e4k.o ./tuner_fc0012.o ./tuner_fc0013.o ./tuner_r82xx.o ./tuner_fc2580.o -lusb-1.0
+
+Compile from lib:
+g++ -std=c++17 -o RfCaptureCpp.exe RfCaptureCpp.cpp RtlSdrCpp.cpp -I./include -lrtlsdr -lusb-1.0
+
+g++ -std=c++17 -o AgcTest.out RtlSdrCpp_AgcTest.cpp RtlSdrCpp.cpp -I./include -lrtlsdr -lusb-1.0
 
 What cmake and make does is to create / define rules for compilation: to specify where to look for dependencies, sequence of compilation, and detect the changes in code (files) that need to be recompiled. If we type the commands manually as above, it will be very time consuming. But when you see and execute the process manually, it will give you more insight.

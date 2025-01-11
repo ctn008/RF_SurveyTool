@@ -1,0 +1,43 @@
+
+C++ Class to Wrap `librtlsdr` Library
+
+This C++ class provides a high-level interface for interacting with RTL-SDR devices using the `librtlsdr` library. It wraps the common functions of the RTL-SDR device, such as opening and closing the device, setting frequency, sample rate, and gain, as well as reading data from the device.
+
+Features:
+
+1. **Initialization**:
+   - The class is initialized with an optional device index (default is 0, for the first device).
+   
+2. **Opening/Closing Device**:
+   - `open()` opens the RTL-SDR device using `rtlsdr_open()`.
+   - `close()` ensures the device is closed properly using `rtlsdr_close()`.
+
+3. **Frequency and Sample Rate**:
+   - `setFrequency()` sets the device's center frequency in Hz using `rtlsdr_set_center_freq()`.
+   - `setSampleRate()` sets the device's sample rate in Hz using `rtlsdr_set_sample_rate()`.
+
+4. **Gain Control**:
+   - `setGainMode()` toggles between automatic and manual gain modes.
+   - `setGain()` sets the manual gain in dB.
+
+5. **Reading Samples**:
+   - `readSamples()` reads raw IQ samples from the device and stores them in a `std::vector<uint8_t>`. It returns the number of bytes read.
+
+6. **Exception Handling**:
+   - The class throws `std::runtime_error` exceptions for any errors encountered, which makes it easier to handle errors in higher-level application code.
+
+### How to Compile:
+To compile this C++ program, you need to link against the `librtlsdr` library. Here's how you might compile the program using `g++`:
+
+```bash
+g++ -o rtl_sdr_test rtl_sdr_test.cpp -lrtlssdr -std=c++11
+```
+
+Dependencies:
+Make sure you have `librtlsdr` installed on your system. On Linux, you can install it using:
+
+```bash
+sudo apt-get install librtlsdr-dev
+```
+
+This class should serve as a robust foundation for integrating RTL-SDR functionality into your C++ projects. Let me know if you need additional functionality or any improvements!
