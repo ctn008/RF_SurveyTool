@@ -10,6 +10,7 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
+from PyQt5 import QtCore
 from gnuradio import analog
 from gnuradio import blocks
 import numpy
@@ -23,6 +24,7 @@ from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio import iio
 import generate_rfbb_epy_block_1 as epy_block_1  # embedded python block
 import generate_rfbb_epy_block_1_0 as epy_block_1_0  # embedded python block
 import generate_rfbb_epy_block_1_0_0 as epy_block_1_0_0  # embedded python block
@@ -66,6 +68,7 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.symbol_rate = symbol_rate = 18000
+        self.pluto_tx_attenuation = pluto_tx_attenuation = 50
         self.interpolation = interpolation = 32
         self.channel_rate = channel_rate = 80000
 
@@ -73,6 +76,9 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         # Blocks
         ##################################################
 
+        self._pluto_tx_attenuation_range = qtgui.Range(10, 100, 1, 50, 200)
+        self._pluto_tx_attenuation_win = qtgui.RangeWidget(self._pluto_tx_attenuation_range, self.set_pluto_tx_attenuation, "'pluto_tx_attenuation'", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_layout.addWidget(self._pluto_tx_attenuation_win)
         self.rational_resampler_xxx_0_0_0 = filter.rational_resampler_ccc(
                 interpolation=(interpolation*20),
                 decimation=9,
@@ -96,7 +102,7 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
             None # parent
         )
         self.qtgui_time_sink_x_0.set_update_time(0.10)
-        self.qtgui_time_sink_x_0.set_y_axis(-3, 3)
+        self.qtgui_time_sink_x_0.set_y_axis(-15, 15)
 
         self.qtgui_time_sink_x_0.set_y_label('Amplitude', "")
 
@@ -142,8 +148,8 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         self.qtgui_histogram_sink_x_0 = qtgui.histogram_sink_f(
             (1024*16),
             32,
-            (-2.5),
-            2.5,
+            (-20),
+            20,
             "",
             2,
             None # parent
@@ -183,7 +189,7 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         self._qtgui_histogram_sink_x_0_win = sip.wrapinstance(self.qtgui_histogram_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_histogram_sink_x_0_win)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
-            1024, #size
+            (2048*2), #size
             window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             (channel_rate*interpolation), #bw
@@ -192,7 +198,7 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
             None # parent
         )
         self.qtgui_freq_sink_x_0.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0.set_y_axis((-140), 10)
+        self.qtgui_freq_sink_x_0.set_y_axis((-80), (-10))
         self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
         self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
         self.qtgui_freq_sink_x_0.enable_autoscale(False)
@@ -224,6 +230,13 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
+        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('' if '' else iio.get_pluto_uri(), [True, True], 32768, False)
+        self.iio_pluto_sink_0.set_len_tag_key('')
+        self.iio_pluto_sink_0.set_bandwidth(3000000)
+        self.iio_pluto_sink_0.set_frequency(391250000)
+        self.iio_pluto_sink_0.set_samplerate((channel_rate*interpolation))
+        self.iio_pluto_sink_0.set_attenuation(0, pluto_tx_attenuation)
+        self.iio_pluto_sink_0.set_filter_params('Auto', '', 0, 0)
         self.epy_block_1_0_0 = epy_block_1_0_0.Pi4DQPSK()
         self.epy_block_1_0 = epy_block_1_0.Pi4DQPSK()
         self.epy_block_1 = epy_block_1.Pi4DQPSK()
@@ -233,9 +246,9 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
         self.blocks_complex_to_float_0 = blocks.complex_to_float(1)
         self.blocks_add_xx_0 = blocks.add_vcc(1)
-        self.analog_sig_source_x_0_0_0 = analog.sig_source_c((channel_rate*interpolation), analog.GR_COS_WAVE, 450000, 0.5, 0, 0)
-        self.analog_sig_source_x_0_0 = analog.sig_source_c((channel_rate*interpolation), analog.GR_COS_WAVE, (-500000), 0.8, 0, 0)
-        self.analog_sig_source_x_0 = analog.sig_source_c((channel_rate*interpolation), analog.GR_COS_WAVE, 1000000, 1.1, 0, 0)
+        self.analog_sig_source_x_0_0_0 = analog.sig_source_c((channel_rate*interpolation), analog.GR_COS_WAVE, 100000, 0.01, 0, 0)
+        self.analog_sig_source_x_0_0 = analog.sig_source_c((channel_rate*interpolation), analog.GR_COS_WAVE, (-500000), 0.1, 0, 0)
+        self.analog_sig_source_x_0 = analog.sig_source_c((channel_rate*interpolation), analog.GR_COS_WAVE, 800000, 1, 0, 0)
         self.analog_random_source_x_0_0_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 4, 2048))), True)
         self.analog_random_source_x_0_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 4, 4096))), True)
         self.analog_random_source_x_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 4, 3072))), True)
@@ -251,12 +264,13 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         self.connect((self.analog_sig_source_x_0_0, 0), (self.blocks_multiply_xx_0_0, 0))
         self.connect((self.analog_sig_source_x_0_0_0, 0), (self.blocks_multiply_xx_0_0_0, 0))
         self.connect((self.blocks_add_xx_0, 0), (self.blocks_throttle2_0, 0))
-        self.connect((self.blocks_complex_to_float_0, 0), (self.qtgui_histogram_sink_x_0, 0))
         self.connect((self.blocks_complex_to_float_0, 1), (self.qtgui_histogram_sink_x_0, 1))
+        self.connect((self.blocks_complex_to_float_0, 0), (self.qtgui_histogram_sink_x_0, 0))
         self.connect((self.blocks_multiply_xx_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.blocks_multiply_xx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.blocks_multiply_xx_0_0_0, 0), (self.blocks_add_xx_0, 2))
         self.connect((self.blocks_throttle2_0, 0), (self.blocks_complex_to_float_0, 0))
+        self.connect((self.blocks_throttle2_0, 0), (self.iio_pluto_sink_0, 0))
         self.connect((self.blocks_throttle2_0, 0), (self.qtgui_freq_sink_x_0, 0))
         self.connect((self.blocks_throttle2_0, 0), (self.qtgui_time_sink_x_0, 0))
         self.connect((self.epy_block_1, 0), (self.rational_resampler_xxx_0, 0))
@@ -281,6 +295,13 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
     def set_symbol_rate(self, symbol_rate):
         self.symbol_rate = symbol_rate
 
+    def get_pluto_tx_attenuation(self):
+        return self.pluto_tx_attenuation
+
+    def set_pluto_tx_attenuation(self, pluto_tx_attenuation):
+        self.pluto_tx_attenuation = pluto_tx_attenuation
+        self.iio_pluto_sink_0.set_attenuation(0,self.pluto_tx_attenuation)
+
     def get_interpolation(self):
         return self.interpolation
 
@@ -290,6 +311,8 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         self.analog_sig_source_x_0_0.set_sampling_freq((self.channel_rate*self.interpolation))
         self.analog_sig_source_x_0_0_0.set_sampling_freq((self.channel_rate*self.interpolation))
         self.blocks_throttle2_0.set_sample_rate((self.channel_rate*self.interpolation))
+        self.iio_pluto_sink_0.set_samplerate((self.channel_rate*self.interpolation))
+        self.low_pass_filter_0.set_taps(firdes.low_pass(1, (self.channel_rate*self.interpolation), 1280000, 300000, window.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0.set_frequency_range(0, (self.channel_rate*self.interpolation))
         self.qtgui_time_sink_x_0.set_samp_rate(self.channel_rate*self.interpolation)
 
@@ -302,6 +325,8 @@ class generate_rfbb(gr.top_block, Qt.QWidget):
         self.analog_sig_source_x_0_0.set_sampling_freq((self.channel_rate*self.interpolation))
         self.analog_sig_source_x_0_0_0.set_sampling_freq((self.channel_rate*self.interpolation))
         self.blocks_throttle2_0.set_sample_rate((self.channel_rate*self.interpolation))
+        self.iio_pluto_sink_0.set_samplerate((self.channel_rate*self.interpolation))
+        self.low_pass_filter_0.set_taps(firdes.low_pass(1, (self.channel_rate*self.interpolation), 1280000, 300000, window.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0.set_frequency_range(0, (self.channel_rate*self.interpolation))
         self.qtgui_time_sink_x_0.set_samp_rate(self.channel_rate*self.interpolation)
 

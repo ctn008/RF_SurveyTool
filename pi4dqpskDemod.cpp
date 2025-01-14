@@ -139,7 +139,7 @@ void pi4dqpsk_demod::freq_xlating_decim(const std::vector<std::complex<double>>&
     int inputLength = input_signal.size();
     std::vector<std::complex<double>> translatedSignal(inputLength);
     for (size_t n = 0; n < inputLength; ++n) {
-        double phase = 2.0 * M_PI * freq_xlating / sampling_rate * n;
+        double phase = -2.0 * M_PI * freq_xlating / sampling_rate * n;
         translatedSignal[n] = input_signal[n] * std::exp(std::complex<double>(0.0, phase));
     }
 

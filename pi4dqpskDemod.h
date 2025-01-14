@@ -23,7 +23,7 @@ public:
     double freq_xlating;   // in Hz
 
     // Constructor to initialize the class
-    pi4dqpsk_demod(double samp_rate, double down_samp_rate, double sym_rate, double freq_xlate)
+    pi4dqpsk_demod(double samp_rate = 2.56e6, double down_samp_rate = 80e3, double sym_rate = 18e3, double freq_xlate =0)
         : sampling_rate(samp_rate), down_sampling_rate(down_samp_rate), symbol_rate(sym_rate), freq_xlating(freq_xlate) {}
 
     // Function prototypes
