@@ -172,3 +172,12 @@ This design can be improved by 1) extend the gain control to VGA gain, 2) measur
 ### 5.4 Calculate location coordinates from the received GPS data
 For every second, receive different GPS data from 03 networks. So how to calculate to get the most accurate location coordinates? How about in case of GPS loss? What kind of gyro data shall be at output ? 
 
+## 6. RfCapture final design
+RF data:
+    Data block @16384. 
+    sampling rate 2m56sps.
+    filesize: 16384 * 2560 (40Mbytes ~ 8 seconds)
+metadata: 
+    Magnitude deviation
+    RF Gain index
+    GNSS data
