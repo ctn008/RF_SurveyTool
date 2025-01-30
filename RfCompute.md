@@ -25,6 +25,11 @@ Question: if filtering the wideband IQ signal into 36k IQ signal per channel, do
 From data point of view:
 2.56 msps BB signal --> 100 channel * 36ksps = 3.6msps --> no saving in storage. Only applicable if number of Tetra channels to be saved is less than 50% (ie 50 channels), that is nomally the case in actual situation. 
 
+**Results**
+- compute averaged power per second (for 100 Tetra channels), using multithread processing ==> each file of captured signal will be resulted in 9-10 result vectors.
+- The result consists of pair: utc and pair (averaged_power vector, int number of blocks being averaged)
+- Need to test the results computed by 2 similar functions to see if the results are the same. 
+  
 ### 2.2 Extract Tetra channel time signal of interest  
 Save time signal or fft power level if cpu processing power is capable of? Save time signal allows checking of received signal whether correct (continuously) or not, by decoding a tetra channel and try to decode - check for frame sequence...  
 
