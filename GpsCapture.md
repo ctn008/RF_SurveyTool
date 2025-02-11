@@ -39,3 +39,14 @@ $GNGLL,3725.77992,N,12208.00135,W,080912.00,A,D*6D
 RMC 	Position, Velocity, and Time
 $GNRMC,080913.00,A,3725.77992,N,12208.00141,W,0.011,,131224,12.59,E,D,V*6F
       This message includes time and date info.
+
+# Final design
+gnssCapture will automatically read and test comport available for GPS signal.
+Same as rtlCapture will automatically read and test rtl device for performance.
+
+have tested c++ code in windows to auto retrieve available cCOM ports and query these ports to read only at 115200 baud if it receive NMEA sentences. the function will return a COM port name.
+
+the gnss data will be read from GGA and RMC sentenses to arrive with time_t info (both date and time), and pass to a struct gnssData (44 bytes) length.
+
+So in term of RfCapture, the gnss signal needs to be defected... but during the capturing process, the gnss data may not be available, the rfdata is still need to be updated (with zero or empty gnss data)
+
