@@ -17,7 +17,8 @@ To perform rf survey for tetra radio systems operating in 380-430MHz band with 2
 Module Connectivity Diagram:
 <img width="1033" height="769" alt="image" src="https://github.com/user-attachments/assets/060829f5-2ff5-4718-a22d-67a077ffa2d9" />
 
-Actual hardware
+Actual hardware: consists of 02 RTL-SDR devices, 01 RF LNA amplifier, rechargeable battery and USB-Type C charging port.
+
 <img width="1316" height="330" alt="image" src="https://github.com/user-attachments/assets/dfde1814-8d91-443e-a694-0ad1213cdce9" />
 <img width="2302" height="732" alt="image" src="https://github.com/user-attachments/assets/034b4c10-e007-4f6e-8275-198849dcaea3" />
 
